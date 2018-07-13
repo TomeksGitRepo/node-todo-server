@@ -8,6 +8,7 @@ const _ = require("lodash");
 let { mongoose } = require("./db/mongoose");
 let { Todo } = require("./models/todo");
 let { User } = require("./models/user");
+const {authenticate} = require('./middleware/authenticate');
 
 var app = express();
 const port = process.env.PORT;
@@ -67,13 +68,6 @@ app.delete("/todos/:id", (req, res) => {
   if (!reqIdValid) {
     return res.status(404).send();
   }
-
-  //remove todo by id
-  //success
-  //if no doc, send 404
-  // if doc, send doc back with 200
-  //error
-  //400 with empty body
 
   Todo.findByIdAndRemove(id)
     .then(todo => {
@@ -136,6 +130,12 @@ app.post("/users", (req, res) => {
     res.status(400).send(e);
 })
 });
+
+
+
+app.get('/users/me', authenticate, (req, res) => {
+  res.send(req.user);
+})
 
 app.listen(port, () => {
   console.log(`Started on port ${port}`);
