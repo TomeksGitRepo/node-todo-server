@@ -1,6 +1,6 @@
 const expect = require("expect");
 const request = require("supertest");
-const {ObjectID} = require('mongodb');
+const { ObjectID } = require("mongodb");
 
 const { app } = require("./../server");
 const { Todo } = require("./../models/todo");
@@ -82,30 +82,74 @@ describe("GET /todos", () => {
   });
 });
 
-describe('GET /todos/:id', () => {
-  it('should return todo doc', (done) => {
+describe("GET /todos/:id", () => {
+  it("should return todo doc", done => {
     request(app)
       .get(`/todos/${todos[0]._id.toHexString()}`)
       .expect(200)
-      .expect((res) => {
+      .expect(res => {
         expect(res.body.todo.text).toBe(todos[0].text);
       })
       .end(done);
   });
 
-  it('should return 404 if todo not found', (done) => {
+  it("should return 404 if todo not found", done => {
     let generatedId = new ObjectID();
     request(app)
       .get(`/todos/${generatedId.toHexString()}`)
       .expect(404)
-      .end(done)
+      .end(done);
   });
 
-  it('should return 404 for non-object ids', (done) => {
+  it("should return 404 for non-object ids", done => {
     // /todos/123
     request(app)
-    .get(`/todos/123`)
-    .expect(404)
-    .end(done)
+      .get(`/todos/123`)
+      .expect(404)
+      .end(done);
   });
-})
+});
+
+describe("DELETE /todos/:id", () => {
+  it("should remove a todo", done => {
+    let hexId = todos[1]._id.toHexString();
+
+    request(app)
+      .delete(`/todos/${hexId}`)
+      .expect(200)
+      .expect(res => {
+        expect(res.body.todo._id).toBe(hexId);
+      })
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        //query database using findById toNotExists
+        Todo.findById(hexId)
+          .then(todo => {
+            expect(todo).toNotExist();
+            done();
+          })
+          .catch(e => {
+            done(e);
+          });
+      });
+  });
+
+ it("should return 404 if todo not found", done => {
+  let generatedId = new ObjectID();
+  request(app)
+    .delete(`/todos/${generatedId.toHexString()}`)
+    .expect(404)
+    .end(done);
+ });
+
+  it("should return 404 if object id is invalid", done => {
+    let generatedId = new ObjectID();
+    request(app)
+      .delete(`/todos/${generatedId.toHexString()}`)
+      .expect(404)
+      .end(done);
+  });
+});
