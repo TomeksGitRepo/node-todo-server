@@ -1,14 +1,16 @@
+require("./config/config");
+
 let express = require("express");
 let bodyParser = require("body-parser");
 let ObjectID = require("mongodb").ObjectID;
-const _ = require('lodash');
+const _ = require("lodash");
 
 let { mongoose } = require("./db/mongoose");
 let { Todo } = require("./models/todo");
 let { User } = require("./models/user");
 
 var app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 
 app.use(bodyParser.json());
 
@@ -94,7 +96,7 @@ app.patch("/todos/:id", (req, res) => {
     return res.status(404).send();
   }
 
-  if (_.isBoolean(body.completed && body.completed)) {
+  if (_.isBoolean(body.completed) && body.completed) {
     body.completedAt = new Date().getTime();
   } else {
     body.completed = false;
